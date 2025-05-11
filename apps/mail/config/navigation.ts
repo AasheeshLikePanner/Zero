@@ -16,6 +16,7 @@ import {
   Danger,
   Sheet,
   Plane2,
+  Theme,
 } from '@/components/icons/icons';
 import { SettingsGearIcon } from '@/components/icons/animated/settings-gear';
 import { ArrowLeftIcon } from '@/components/icons/animated/arrow-left';
@@ -159,6 +160,11 @@ export const navigationConfig: Record<string, NavConfig> = {
             title: 'navigation.settings.appearance',
             url: '/settings/appearance',
             icon: Stars,
+          },
+          {
+            title: 'navigation.settings.themes',
+            url: '/settings/theme',
+            icon: Theme,
           },
           {
             title: 'navigation.settings.labels',

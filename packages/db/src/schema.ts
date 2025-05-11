@@ -147,3 +147,20 @@ export const writingStyleMatrix = createTable('writing_style_matrix', {
     }),
   ]
 })
+
+
+export const theme = createTable('theme', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull(),
+  name: text('name').notNull(),
+  isPublic: boolean('is_public').default(false),
+  tags: text('tags').array(), // For PostgreSQL array type
+  colors: jsonb('colors').notNull(),
+  fonts: jsonb('fonts').notNull(),
+  radii: jsonb('radii').notNull(),
+  spacing: jsonb('spacing').notNull(),
+  shadows: jsonb('shadows').notNull(),
+  preview: jsonb('preview').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
