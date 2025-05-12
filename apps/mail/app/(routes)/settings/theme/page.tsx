@@ -8,12 +8,23 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Theme } from '@/types/theme';
 import { Button } from '@/components/ui/button';
+import { fetchUserTheme } from '@/lib/theme-service';
+import { useEffect } from 'react';
+
 
 export default function ThemeSettingsPage() {
   const [activeTab, setActiveTab] = useState('my-themes');
   const [editingTheme, setEditingTheme] = useState<Theme | undefined>(undefined);
   const [userThemes, setUserThemes] = useState<Theme[]>([]);
 
+  useEffect(() => {
+    const loadThemes = async () => {
+      const themes = await fetchUserTheme();
+      setUserThemes(themes);
+    };
+    loadThemes();
+  }, []);
+  
   const handleCreateNew = () => {
     setEditingTheme(undefined);
     setActiveTab('editor');

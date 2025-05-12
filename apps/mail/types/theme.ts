@@ -51,7 +51,7 @@ export interface Theme {
   id: string;
   name: string;
   isPublic: boolean;
-  userId?: string;
+  userId: string;
   tags?: string[];
   colors: ThemeColors;
   fonts: ThemeFonts;

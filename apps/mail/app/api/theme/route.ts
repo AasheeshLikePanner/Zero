@@ -3,8 +3,8 @@ import { ThemeService } from './service';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 
-export async function GET(request: Request) {
-  const headersList = headers();
+export const GET =  async (request: Request) => {
+  const headersList = await headers();
   const session = await auth.api.getSession({ headers: headersList });
   
   if (!session?.user?.id) {
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
 }
 
 export const POST = async (request: Request) => {
-  const headersList = headers();
+  const headersList = await headers();
   const session = await auth.api.getSession({ headers: headersList });
   
   if (!session?.user?.id) {
@@ -67,6 +67,42 @@ export const POST = async (request: Request) => {
     console.error('Error creating theme:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to create theme' },
+      { status: 500 }
+    );
+  }
+}
+
+export const PUT = async (request: Request) => {
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
+  
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+    const service = new ThemeService();
+    
+    // Validate required fields
+    if (!body.originalThemeId || !body.newName) {
+      return NextResponse.json(
+        { error: 'Original theme ID and new name are required' },
+        { status: 400 }
+      );
+    }
+
+    const clonedTheme = await service.cloneTheme(
+      body.originalThemeId,
+      session.user.id,
+      body.newName
+    );
+    
+    return NextResponse.json(clonedTheme);
+  } catch (error) {
+    console.error('Error cloning theme:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to clone theme' },
       { status: 500 }
     );
   }

@@ -2,9 +2,10 @@ import { eq, and } from "drizzle-orm";
 import { db } from "@zero/db";
 import { theme } from "@zero/db/schema";
 import type { Theme } from "@/types/theme";
+import { trackFallbackParamAccessed } from "next/dist/server/app-render/dynamic-rendering";
 
 export class ThemeRepository {
-  async getThemeById(id: string): Promise<Theme | null> {
+  async getThemeById(id: string) {
     const result = await db
       .select()
       .from(theme)
@@ -13,24 +14,23 @@ export class ThemeRepository {
     return result[0] ?? null;
   }
 
-  async getUserThemes(userId: string): Promise<Theme[]> {
+  async getUserThemes(userId: string){
     return db
       .select()
       .from(theme)
       .where(and(
-        eq(theme.userId, userId),
-        eq(theme.isPublic, false)
+        eq(theme.userId, userId)
       ));
   }
 
-  async getPublicThemes(): Promise<Theme[]> {
+  async getPublicThemes(){
     return db
       .select()
       .from(theme)
       .where(eq(theme.isPublic, true));
   }
 
-  async saveTheme(themeData: Theme): Promise<Theme> {
+ async saveTheme(themeData: Theme){
     // Ensure required fields are present
     if (!themeData.colors || !themeData.fonts || !themeData.spacing || !themeData.shadows) {
       throw new Error("Missing required theme properties");
@@ -42,7 +42,7 @@ export class ThemeRepository {
         id: themeData.id,
         userId: themeData.userId,
         name: themeData.name,
-        isPublic: themeData.isPublic ?? false,
+        isPublic: themeData.isPublic,
         colors: themeData.colors,
         fonts: themeData.fonts,
         radii: themeData.radii ?? {
@@ -87,4 +87,24 @@ export class ThemeRepository {
   async deleteTheme(id: string): Promise<void> {
     await db.delete(theme).where(eq(theme.id, id));
   }
+
+async cloneTheme(originalThemeId: string, userId: string, newName: string) {
+  const originalTheme = await this.getThemeById(originalThemeId);
+  if (!originalTheme) {
+    throw new Error("Original theme not found");
+  }
+
+  const clonedTheme:any = {
+    ...originalTheme,
+    id: crypto.randomUUID(),
+    userId,
+    name: newName,
+    isPublic: false, 
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  return this.saveTheme(clonedTheme);
+}
+
 }
