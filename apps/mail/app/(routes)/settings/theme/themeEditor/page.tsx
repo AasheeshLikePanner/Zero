@@ -29,6 +29,7 @@ export function ThemeEditor({
     return {
       id: '',
       name: 'New Theme',
+      userId: 'something',
       isPublic: false,
       colors: {
         primary: '#3b82f6',
