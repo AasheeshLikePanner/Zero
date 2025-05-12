@@ -5,10 +5,9 @@ import { MAX_URL_LENGTH } from './constants';
 import { filterSuggestions } from './filter';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { JSONContent } from 'novel';
+import type { JSONContent } from 'novel';
+import type { Sender } from '@/types';
 import LZString from 'lz-string';
-import { Sender } from '@/types';
-import axios from 'axios';
 
 export const FOLDERS = {
   SPAM: 'spam',
@@ -125,8 +124,6 @@ export const truncateFileName = (name: string, maxLength = 15) => {
   }
   return `${name.slice(0, maxLength)}...`;
 };
-
-export const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export type FilterSuggestion = {
   filter: string;
@@ -579,19 +576,57 @@ export function parseNaturalLanguageDate(query: string): { from?: Date; to?: Dat
   return null;
 }
 
+export const categorySearchValues = [
+  'is:important NOT is:sent NOT is:draft',
+  'NOT is:draft (is:inbox OR (is:sent AND to:me))',
+  'is:personal NOT is:sent NOT is:draft',
+  'is:updates NOT is:sent NOT is:draft',
+  'is:promotions NOT is:sent NOT is:draft',
+  'is:unread NOT is:sent NOT is:draft',
+];
+
 export const cleanSearchValue = (q: string): string => {
-  if (!q) return '';
-
-  const filterRegex = new RegExp(
-    filterSuggestions
-      .map((s) => s.filter)
-      .filter(Boolean) // Remove any empty strings
-      .join('|'),
-    'gi', // Case insensitive
+  const escapedValues = categorySearchValues.map((value) =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
   );
-
   return q
-    .replace(filterRegex, '')
-    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .replace(new RegExp(escapedValues.join('|'), 'g'), '')
+    .replace(/\s+/g, ' ')
     .trim();
+};
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const withExponentialBackoff = async <T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  initialDelay = 1000,
+  maxDelay = 10000,
+): Promise<T> => {
+  let retries = 0;
+  let delayMs = initialDelay;
+
+  while (true) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      if (retries >= maxRetries) {
+        throw error;
+      }
+
+      const isRateLimit =
+        error?.code === 429 ||
+        error?.errors?.[0]?.reason === 'rateLimitExceeded' ||
+        error?.errors?.[0]?.reason === 'userRateLimitExceeded';
+
+      if (!isRateLimit) {
+        throw error;
+      }
+
+      await delay(delayMs);
+
+      delayMs = Math.min(delayMs * 2 + Math.random() * 1000, maxDelay);
+      retries++;
+    }
+  }
 };

@@ -17,17 +17,11 @@ import {
   Sheet,
   Plane2,
   Theme,
+  LockIcon,
 } from '@/components/icons/icons';
-import { SettingsGearIcon } from '@/components/icons/animated/settings-gear';
-import { ArrowLeftIcon } from '@/components/icons/animated/arrow-left';
-import { ShieldCheckIcon } from '@/components/icons/animated/shield';
-import { KeyboardIcon } from '@/components/icons/animated/keyboard';
-import { SparklesIcon } from '@/components/icons/animated/sparkles';
-import { BadgeAlertIcon } from '@/components/icons/animated/alert';
-import { UsersIcon } from '@/components/icons/animated/users';
+import type { NestedKeyOf, MessageKeys } from 'next-intl';
 import { MessageSquareIcon } from 'lucide-react';
-import { NestedKeyOf } from 'next-intl';
-import { MessageKeys } from 'next-intl';
+
 export interface NavItem {
   id?: string;
   title: string;
@@ -155,6 +149,11 @@ export const navigationConfig: Record<string, NavConfig> = {
             title: 'navigation.settings.connections',
             url: '/settings/connections',
             icon: Users,
+          },
+          {
+            title: 'navigation.settings.privacy',
+            url: '/settings/privacy',
+            icon: LockIcon,
           },
           {
             title: 'navigation.settings.appearance',
